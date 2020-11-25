@@ -1,6 +1,7 @@
 const db = require('../models/index')
 const Restaurant = db.Restaurant
 const fs = require('fs')
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const adminController = {
   getRestaurants: (req, res) => {
     return Restaurant.findAll({ raw: true })
