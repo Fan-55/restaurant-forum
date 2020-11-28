@@ -1,5 +1,6 @@
 const db = require('../models/index')
 const Restaurant = db.Restaurant
+const User = db.User
 const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const adminController = {
@@ -114,6 +115,26 @@ const adminController = {
           .then((restaurant) => {
             res.redirect('/admin/restaurants')
           })
+      })
+  },
+  getUsers: (req, res) => {
+    return User.findAll({ raw: true })
+      .then(users => {
+        return res.render('admin/users', { users })
+      })
+  },
+  putUsers: (req, res) => {
+    User.findByPk(req.params.id)
+      .then(user => {
+        console.log('isAdmin before change role:', user.isAdmin)
+        return user.update({
+          isAdmin: user.isAdmin ? false : true
+        })
+      })
+      .then((user) => {
+        const userRole = user.isAdmin ? 'admin' : 'user'
+        req.flash('success_messages', `${user.name}'s role is successfully updated to ${userRole}`)
+        res.redirect('/admin/users')
       })
   }
 }
