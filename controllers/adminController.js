@@ -155,7 +155,8 @@ const adminController = {
         req.flash('success_messages', `${user.name}'s role is successfully updated to ${userRole}`)
         res.redirect('/admin/users')
       })
-  }
+  },
+
 }
 
 module.exports = adminController
