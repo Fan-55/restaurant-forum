@@ -7,5 +7,15 @@ module.exports = {
       .then(categories => {
         res.render('admin/categories', { categories })
       })
+  },
+  postCategory: (req, res) => {
+    const { name } = req.body
+    if (!name) {
+      req.flash('error_messages', '沒有輸入種類')
+      res.redirect('back')
+    } else {
+      Category.create({ name })
+        .then(() => res.redirect('/admin/categories'))
+    }
   }
 }
