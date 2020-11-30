@@ -1,6 +1,6 @@
 module.exports = {
-  ifCond: (categoryOptionId, selectedCategoryId, options) => {
-    if (categoryOptionId === selectedCategoryId) {
+  ifCond: (a, b, options) => {
+    if (a === b) {
       return options.fn(this)
     } else {
       return options.inverse(this)
