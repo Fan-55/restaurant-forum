@@ -10,6 +10,10 @@ let restController = {
       description: r.description.substring(0, 50)
     }))
     return res.render('restaurants', { restaurants })
+  },
+  getRestaurant: async (req, res) => {
+    const restaurant = await Restaurant.findByPk(req.params.id, { raw: true, nest: true, include: [Category] })
+    res.render('restaurant', { restaurant })
   }
 }
 module.exports = restController
