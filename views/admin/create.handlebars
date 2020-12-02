@@ -1,50 +1,63 @@
-{{#if restaurant}}
-<form action="/admin/restaurants/{{restaurant.id}}?_method=PUT" method="POST" enctype="multipart/form-data">
-  {{else}}
-  <form action="/admin/restaurants" method="POST" enctype="multipart/form-data">
-    {{/if}}
-    <div class="form-group">
-      <label for="name">Name</label>
-      <input type="text" class="form-control" name="name" id="name" placeholder="Enter name"
-        value="{{restaurant.name}}">
+<div class="container">
+  <h2 class="text-center">新增餐廳</h2>
+
+  <form action="/admin/restaurants" method="POST" enctype="multipart/form-data" style="max-width:500px;"
+    class="mx-auto">
+
+    <small><span style="color:red;">*</span>必填欄位</small>
+
+    <div class="form-group mt-3">
+      <label for="name"><span style="color:red;">*</span>餐廳名稱</label>
+      <input type="text" class="form-control {{#if errors.name}}is-invalid{{/if}}" name="name" id="name"
+        placeholder="請輸入餐廳名稱" value="{{restaurant.name}}" required>
+      {{#if errors.name}}
+      <div class="invalid-feedback">{{errors.name}}</div>
+      {{/if}}
     </div>
 
     <div class="form-group">
-      <label for="tel">Tel</label>
-      <input type="text" class="form-control" name="tel" id="tel" placeholder="Enter tel" value="{{restaurant.tel}}">
+      <label for="tel">餐廳電話</label>
+      <input type="text" class="form-control" name="tel" id="tel" placeholder="請輸入餐廳電話" value="{{restaurant.tel}}">
     </div>
 
     <div class="form-group">
-      <label for="address">Address</label>
-      <input type="text" class="form-control" name="address" id="address" placeholder="Enter address"
+      <label for="address">餐廳地址</label>
+      <input type="text" class="form-control" name="address" id="address" placeholder="請輸入餐廳地址"
         value="{{restaurant.address}}">
     </div>
 
     <div class="form-group">
-      <label for="categoryId">Category</label>
-      <select class="form-control" id="categoryId" name="categoryId">
+      <label for="CategoryId"><span style="color:red;">*</span>餐廳種類</label>
+      <select class="form-control custom-select {{#if errors.CategoryId}}is-invalid{{/if}}" id="CategoryId"
+        name="CategoryId" required>
+        <option disabled selected>下拉選取</option>
         {{#each categories}}
         <option value="{{this.id}}" {{#ifCond this.id ../restaurant.CategoryId}}selected{{/ifCond}}>{{this.name}}
         </option>
         {{/each}}
       </select>
+      {{#if errors.CategoryId}}
+      <div class="invalid-feedback">{{errors.CategoryId}}</div>
+      {{/if}}
     </div>
 
     <div class="form-group">
-      <label for="opening_hours">Opening Hours</label>
-      <input type="time" class="form-control" name="opening_hours" id="opening_hours" placeholder="Enter opening_hours"
+      <label for="opening_hours">營業時間</label>
+      <input type="time" class="form-control" name="opening_hours" id="opening_hours"
         value="{{restaurant.opening_hours}}">
     </div>
 
     <div class="form-group">
-      <label for="description">Description</label>
+      <label for="description">餐廳介紹</label>
       <textarea class="form-control" id="description" name="description" rows="3">{{restaurant.description}}</textarea>
     </div>
 
     <div class="form-group">
-      <label for="image">Image</label>
-      <input type="file" class="form-control-file" id="image" name="image">
+      <label for="image">餐廳照片</label>
+      <input type="file" class="form-control-file" id="image" name="image" accept=".jpg,.png">
     </div>
 
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
+
+</div>
