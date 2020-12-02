@@ -138,20 +138,24 @@ const adminController = {
     }
   },
 
-  deleteRestaurant: (req, res) => {
-    return Restaurant.findByPk(req.params.id)
-      .then((restaurant) => {
-        restaurant.destroy()
-          .then((restaurant) => {
-            res.redirect('/admin/restaurants')
-          })
-      })
+  deleteRestaurant: async (req, res, next) => {
+    try {
+      const restaurant = await Restaurant.findByPk(req.params.id)
+      await restaurant.destroy()
+      res.redirect('/admin/restaurants')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
-  getUsers: (req, res) => {
-    return User.findAll({ raw: true })
-      .then(users => {
-        return res.render('admin/users', { users })
-      })
+  getUsers: async (req, res, next) => {
+    try {
+      const users = await User.findAll({ raw: true, nest: true })
+      res.render('admin/users', { users })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
   putUsers: (req, res) => {
     User.findByPk(req.params.id)
