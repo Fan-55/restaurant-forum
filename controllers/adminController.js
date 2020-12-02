@@ -157,21 +157,18 @@ const adminController = {
       next(err)
     }
   },
-  putUsers: (req, res) => {
-    User.findByPk(req.params.id)
-      .then(user => {
-        console.log('isAdmin before change role:', user.isAdmin)
-        return user.update({
-          isAdmin: user.isAdmin ? false : true
-        })
-      })
-      .then((user) => {
-        const userRole = user.isAdmin ? 'admin' : 'user'
-        req.flash('success_messages', `${user.name}'s role is successfully updated to ${userRole}`)
-        res.redirect('/admin/users')
-      })
+  toggleAdmin: async (req, res, next) => {
+    try {
+      const user = await User.findByPk(req.params.id)
+      const toggledUser = await user.update({ isAdmin: user.isAdmin ? false : true })
+      const userRole = toggledUser.isAdmin ? 'admin' : 'user'
+      req.flash('success_messages', `${user.name}'s role is successfully updated to ${userRole}`)
+      res.redirect('/admin/users')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
-
 }
 
 module.exports = adminController
