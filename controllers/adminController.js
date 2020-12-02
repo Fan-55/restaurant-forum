@@ -8,22 +8,19 @@ const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 
 const adminController = {
-  getRestaurants: (req, res) => {
-    return Restaurant.findAll({
-      raw: true,
-      nest: true,
-      include: [Category]
-    })
-      .then(restaurants => {
-        console.log(restaurants)
-        return res.render('admin/restaurants', { restaurants })
-      })
-  },
   createRestaurant: (req, res) => {
     Category.findAll({ raw: true, nest: true })
       .then(categories => {
         return res.render('admin/create', { categories })
       })
+  getRestaurants: async (req, res, next) => {
+    try {
+      const restaurants = await Restaurant.findAll({ raw: true, nest: true, include: [Category] })
+      res.render('admin/restaurants', { restaurants })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
   postRestaurant: (req, res) => {
     if (!req.body.name) {
