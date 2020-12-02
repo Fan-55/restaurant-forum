@@ -17,10 +17,6 @@ const adminController = {
       next(err)
     }
   },
-  postRestaurant: (req, res) => {
-    if (!req.body.name) {
-      req.flash('error_messages', "name didn't exist")
-      return res.redirect('back')
   createRestaurant: async (req, res, next) => {
     try {
       const categories = await Category.findAll({ raw: true, nest: true })
@@ -29,38 +25,51 @@ const adminController = {
       console.log(err)
       next(err)
     }
+  },
+  postRestaurant: async (req, res, next) => {
+    try {
+      //check required attributes
+      const restaurant = req.body
+      const errors = {}
+      if (!restaurant.name.trim()) {
+        errors.name = '餐廳名稱不能空白'
+      }
+      if (!restaurant.CategoryId) {
+        errors.CategoryId = '餐廳種類不能空白'
+      }
+      if (Object.keys(errors).length) {
+        const categories = await Category.findAll({ raw: true, nest: true })
+        restaurant.CategoryId = Number(restaurant.CategoryId)
+        return res.render('admin/create', { errors, categories, restaurant })
+      }
 
-    const { file } = req
-    if (file) {
-      imgur.setClientID(IMGUR_CLIENT_ID);
-      imgur.upload(file.path, (err, img) => {
-        return Restaurant.create({
-          name: req.body.name,
-          tel: req.body.tel,
-          address: req.body.address,
-          opening_hours: req.body.opening_hours,
-          description: req.body.description,
-          image: file ? img.data.link : null,
-          CategoryId: req.body.categoryId
-        }).then((restaurant) => {
-          req.flash('success_messages', 'restaurant was successfully created')
-          return res.redirect('/admin/restaurants')
+      //if restaurant image file exists, create new restaurant with image; else create restaurant without image
+      const file = req.file
+      if (file) {
+        imgur.setClientID(IMGUR_CLIENT_ID);
+        const uploadToImgur = new Promise((resolve, reject) => {
+          imgur.upload(file.path, (err, image) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(image)
+            }
+          })
         })
-      })
-    }
-    else {
-      return Restaurant.create({
-        name: req.body.name,
-        tel: req.body.tel,
-        address: req.body.address,
-        opening_hours: req.body.opening_hours,
-        description: req.body.description,
-        image: null,
-        CategoryId: req.body.categoryId
-      }).then((restaurant) => {
-        req.flash('success_messages', 'restaurant was successfully created')
+        const image = await uploadToImgur
+        restaurant.image = image ? image.data.link : null
+        const newRestaurant = await Restaurant.create(restaurant)
+        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.name}`)
         return res.redirect('/admin/restaurants')
-      })
+      } else {
+        restaurant.image = null
+        const newRestaurant = await Restaurant.create(restaurant)
+        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.name}`)
+        return res.redirect('/admin/restaurants')
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
   },
   getRestaurant: (req, res) => {
