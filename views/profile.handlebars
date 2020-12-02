@@ -1,5 +1,5 @@
 <div class="container">
-  <div class="wrapper d-flex">
+  <div class="profile-wrapper d-flex">
     <div class="image mr-3" style="width: 300px;">
       <img src="{{userProfile.image}}" alt="user-image" style="width: 100%;">
     </div>
@@ -9,6 +9,17 @@
       {{#if isOwnProfile}}
       <a class="btn btn-primary" href="/users/{{userProfile.id}}/edit">edit</a>
       {{/if}}
+    </div>
+  </div>
+
+  <div class="comment-wrapper">
+    <div class="comment-count">{{commentCount}}間已評論餐廳</div>
+    <div class="commented-restaurant d-flex flex-wrap">
+      {{#each userProfile.Comments}}
+      <div class="img mr-3" style="width: 100px;"> <a href="/restaurants/{{this.Restaurant.id}}"><img
+            src="{{this.Restaurant.image}}" alt="" style="width: 100%;"></a>
+      </div>
+      {{/each}}
     </div>
   </div>
 </div>

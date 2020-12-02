@@ -4,6 +4,8 @@ const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 
 const db = require('../models/index')
 const User = db.User
+const Comment = db.Comment
+const Restaurant = db.Restaurant
 
 const userController = {
   signUpPage: (req, res) => {
@@ -46,9 +48,11 @@ const userController = {
     res.redirect('/signin')
   },
   getUser: async (req, res) => {
-    let userProfile = await User.findByPk(req.params.id)
+    let userProfile = await User.findByPk(req.params.id, { include: [{ model: Comment, include: [Restaurant] }] })
     userProfile = userProfile.toJSON()
-    res.render('profile', { userProfile })
+    const commentCount = userProfile.Comments.length
+    console.log(userProfile)
+    res.render('profile', { userProfile, commentCount })
   },
   editUser: async (req, res) => {
     let userProfile = await User.findByPk(req.params.id)
