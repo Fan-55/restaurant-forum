@@ -1,6 +1,6 @@
 <div class="container">
 
-  <form action="/users/{{user.id}}?_method=PUT" method="POST">
+  <form action="/users/{{userProfile.id}}?_method=PUT" method="POST" enctype="multipart/form-data">
 
     <div class="form-group">
       <label for="name">Name</label>
@@ -9,7 +9,7 @@
 
     <div class="form-group">
       <label for="image">image</label>
-      <input type="file" class="form-control-file" id="image">
+      <input type="file" class="form-control-file" id="image" name="image">
     </div>
 
     <button type="submit" class="btn btn-primary">Submit</button>
