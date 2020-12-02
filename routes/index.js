@@ -62,7 +62,23 @@ module.exports = (app, passport) => {
   app.get('/logout', userController.logout)
 
   //users
-  app.get('/users/:id', authenticated, userController.getUser)
-  app.get('/users/:id/edit', authenticated, userController.editUser)
+  app.get('/users/:id', authenticated, (req, res, next) => {
+    const userId = res.locals.user.id.toString() //user id of the authenticated user
+    const profileUserId = req.params.id // user id of the user profile
+    res.locals.isOwnProfile = userId === profileUserId ? true : false
+    next()
+  }, userController.getUser)
+
+  app.get('/users/:id/edit', authenticated, (req, res, next) => {
+    const userId = res.locals.user.id.toString() //user id of the authenticated user
+    const profileUserId = req.params.id // user id of the user profile
+    if (userId === profileUserId) {
+      return next()
+    } else {
+      req.flash('error_messages', '無權訪問該頁面')
+      res.redirect(`/users/${profileUserId}`)
+    }
+  }, userController.editUser)
+
   app.put('/users/:id', authenticated, upload.single('image'), userController.putUser)
 }

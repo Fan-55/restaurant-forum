@@ -1,12 +1,14 @@
 <div class="container">
   <div class="wrapper d-flex">
     <div class="image mr-3" style="width: 300px;">
-      <img src="{{user.image}}" alt="user-image" style="width: 100%;">
+      <img src="{{userProfile.image}}" alt="user-image" style="width: 100%;">
     </div>
     <div class="user-info">
-      <h2 class="user-name">{{user.name}}</h2>
-      <p class="user-email">{{user.email}}</p>
-      <a class="btn btn-primary" href="/users/{{user.id}}/edit">edit</a>
+      <h2 class="user-name">{{userProfile.name}}</h2>
+      <p class="user-email">{{userProfile.email}}</p>
+      {{#if isOwnProfile}}
+      <a class="btn btn-primary" href="/users/{{userProfile.id}}/edit">edit</a>
+      {{/if}}
     </div>
   </div>
 </div>

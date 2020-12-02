@@ -1,4 +1,7 @@
 const bcrypt = require('bcryptjs')
+const imgur = require('imgur-node-api')
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
+
 const db = require('../models/index')
 const User = db.User
 
@@ -43,14 +46,15 @@ const userController = {
     res.redirect('/signin')
   },
   getUser: async (req, res) => {
-    let user = await User.findByPk(req.params.id)
-    user = user.toJSON()
-    res.render('profile', { user })
+    let userProfile = await User.findByPk(req.params.id)
+    userProfile = userProfile.toJSON()
+    res.render('profile', { userProfile })
   },
   editUser: async (req, res) => {
-    let user = await User.findByPk(req.params.id)
-    user = user.toJSON()
-    res.render('editProfile', { user })
+    let userProfile = await User.findByPk(req.params.id)
+    userProfile = userProfile.toJSON()
+    res.render('editProfile', { userProfile })
+  },
   putUser: async (req, res) => {
     const { name } = req.body
     const image = req.file
