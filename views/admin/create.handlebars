@@ -1,7 +1,7 @@
 <div class="container">
   {{#if isEdit}}
   <h2 class="text-center">編輯餐廳: {{restaurant.name}}</h2>
-  <form action="/admin/restaurants/{{restaurant.id}}?_PUT" method="POST" enctype="multipart/form-data"
+  <form action="/admin/restaurants/{{restaurant.id}}?_method=PUT" method="POST" enctype="multipart/form-data"
     style="max-width:500px;" class="mx-auto">
     {{else}}
     <h2 class="text-center">新增餐廳</h2>

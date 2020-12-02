@@ -91,51 +91,50 @@ const adminController = {
       next(err)
     }
   },
-  putRestaurant: (req, res) => {
-    if (!req.body.name) {
-      req.flash('error_messages', "name didn't exist")
-      return res.redirect('back')
-    }
+  putRestaurant: async (req, res, next) => {
+    try {
+      const restaurant = req.body
+      const errors = {}
+      if (!restaurant.name.trim()) {
+        errors.name = '餐廳名稱不能空白'
+      }
+      if (!restaurant.CategoryId) {
+        errors.CategoryId = '餐廳種類不能空白'
+      }
+      if (Object.keys(errors).length) {
+        const categories = await Category.findAll({ raw: true, nest: true })
+        restaurant.CategoryId = Number(restaurant.CategoryId)
+        return res.render('admin/create', { errors, categories, restaurant })
+      }
 
-    const { file } = req
-    if (file) {
-      imgur.setClientID(IMGUR_CLIENT_ID);
-      imgur.upload(file.path, (err, img) => {
-        return Restaurant.findByPk(req.params.id)
-          .then((restaurant) => {
-            restaurant.update({
-              name: req.body.name,
-              tel: req.body.tel,
-              address: req.body.address,
-              opening_hours: req.body.opening_hours,
-              description: req.body.description,
-              image: file ? img.data.link : restaurant.image,
-              CategoryId: req.body.categoryId
-            })
-              .then((restaurant) => {
-                req.flash('success_messages', 'restaurant was successfully to update')
-                res.redirect('/admin/restaurants')
-              })
+      const file = req.file
+      if (file) {
+        imgur.setClientID(IMGUR_CLIENT_ID);
+        const uploadToImgur = new Promise((resolve, reject) => {
+          imgur.upload(file.path, (err, image) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(image)
+            }
           })
-      })
-    }
-    else {
-      return Restaurant.findByPk(req.params.id)
-        .then((restaurant) => {
-          restaurant.update({
-            name: req.body.name,
-            tel: req.body.tel,
-            address: req.body.address,
-            opening_hours: req.body.opening_hours,
-            description: req.body.description,
-            image: restaurant.image,
-            CategoryId: req.body.categoryId
-          })
-            .then((restaurant) => {
-              req.flash('success_messages', 'restaurant was successfully to update')
-              res.redirect('/admin/restaurants')
-            })
         })
+        const image = await uploadToImgur
+        restaurant.image = image ? image.data.link : null
+        const targetRestaurant = await Restaurant.findByPk(req.params.id)
+        const editedRestaurant = await targetRestaurant.update(restaurant)
+        req.flash('success_messages', `成功編輯餐廳: ${editedRestaurant.name}`)
+        res.redirect(`/admin/restaurants/${req.params.id}`)
+      }
+      else {
+        const targetRestaurant = await Restaurant.findByPk(req.params.id)
+        const editedRestaurant = await targetRestaurant.update(restaurant)
+        req.flash('success_messages', `成功編輯餐廳: ${editedRestaurant.name}`)
+        res.redirect(`/admin/restaurants/${req.params.id}`)
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
   },
 
