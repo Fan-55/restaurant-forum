@@ -72,11 +72,14 @@ const adminController = {
       next(err)
     }
   },
-  getRestaurant: (req, res) => {
-    return Restaurant.findByPk(req.params.id, { raw: true, nest: true, include: [Category] })
-      .then(restaurant => {
-        return res.render('admin/restaurant', { restaurant })
-      })
+  getRestaurant: async (req, res, next) => {
+    try {
+      const restaurant = await Restaurant.findByPk(req.params.id, { raw: true, nest: true, include: [Category] })
+      res.render('admin/restaurant', { restaurant })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
   editRestaurant: (req, res) => {
     Category.findAll({ raw: true, nest: true })
