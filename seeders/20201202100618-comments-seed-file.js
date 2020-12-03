@@ -15,7 +15,7 @@ module.exports = {
     restaurantIds = restaurantIds.map((item) => { return item.id })
 
     const seedComments = []
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 50; i++) {
       const randomUserIndex = Math.floor(Math.random() * userIds.length)
       const randomRestIndex = Math.floor(Math.random() * restaurantIds.length)
       seedComments.push({
