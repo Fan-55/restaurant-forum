@@ -62,6 +62,16 @@ let restController = {
       console.log(err)
       next(err)
     }
-  }
+  },
+  getDashboard: async (req, res, next) => {
+    try {
+      let restaurant = await Restaurant.findByPk(req.params.id, { include: [Comment, Category] })
+      restaurant = restaurant.toJSON()
+      res.render('dashboard', { restaurant, commentCount: restaurant.Comments.length })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
 }
 module.exports = restController
