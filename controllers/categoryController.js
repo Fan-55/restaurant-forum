@@ -6,7 +6,7 @@ module.exports = {
   //"GET /admin/categories/:id" uses this controller to render edit category name page
   getCategories: async (req, res, next) => {
     try {
-      const categories = await Category.findAll({ raw: true, nest: true })
+      const categories = await Category.findAll({ raw: true, nest: true, order: [['updatedAt', 'DESC']] })
       if (req.params.id) {
         const selectedCategory = categories.find(category => category.id.toString() === req.params.id)
         return res.render('admin/categories', { categories, category: selectedCategory })

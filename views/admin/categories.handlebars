@@ -8,17 +8,17 @@
 </div>
 <br />
 <br />
-<div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
+<div class="d-flex align-items-center p-3 my-3 bg-purple rounded shadow-sm">
   {{#if category}}
-  <form action="/admin/categories/{{category.id}}?_method=PUT" method="POST">
-    <input type="text" placeholder="name" name="name" value="{{category.name}}">
-    <button type="submit">Update</button>
-    <a href="/admin/categories">or Create New</a>
+  <form action="/admin/categories/{{category.id}}?_method=PUT" method="POST" class="form-inline">
+    <label for="edit-category" class="mr-3">正在編輯餐廳種類:</label>
+    <input type="text" name="name" value="{{category.name}}" id="edit-category" class="form-control">
+    <button type="submit" class="btn btn-dark ml-1 mr-3">更新</button>
   </form>
   {{else}}
-  <form action="/admin/categories" method="POST">
-    <input type="text" placeholder="name" name="name">
-    <button type="submit">Submit</button>
+  <form action="/admin/categories" method="POST" class="form-inline">
+    <input type="text" class="form-control" name="name" id="new-category" placeholder="請輸入新的餐廳種類">
+    <button type="submit" class="btn btn-dark ml-1">新增</button>
   </form>
   {{/if}}
 </div>
@@ -27,9 +27,9 @@
 <table class="table">
   <thead class="thead-dark">
     <tr>
-      <th scope="col">#</th>
+      <th scope="col">#id</th>
       <th scope="col">Category Name</th>
-      <th scope="col">#</th>
+      <th scope="col">#編輯</th>
     </tr>
   </thead>
   <tbody>
@@ -38,13 +38,11 @@
       <th scope="row">{{this.id}}</th>
       <td>{{this.name}}</td>
       <td>
-        <button type="button" class="btn btn-link">
-          <a href="/admin/categories/{{this.id}}">
-            Edit
-          </a>
-        </button>
+        <a href="/admin/categories/{{this.id}}" class="btn btn-link">
+          Edit
+        </a>
         <form action="/admin/categories/{{this.id}}?_method=DELETE" method="POST" style="display: inline;">
-          <button type="submit" class="btn btn-link">Delete</button>
+          <button type="submit" class="btn btn-link" onclick="confirm('確定刪除?')">Delete</button>
         </form>
       </td>
     </tr>

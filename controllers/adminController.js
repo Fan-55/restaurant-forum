@@ -10,7 +10,7 @@ const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 const adminController = {
   getRestaurants: async (req, res, next) => {
     try {
-      const restaurants = await Restaurant.findAll({ raw: true, nest: true, include: [Category] })
+      const restaurants = await Restaurant.findAll({ raw: true, nest: true, include: [Category], order: [['updatedAt', 'DESC']] })
       res.render('admin/restaurants', { restaurants })
     } catch (err) {
       console.log(err)
@@ -124,13 +124,13 @@ const adminController = {
         const targetRestaurant = await Restaurant.findByPk(req.params.id)
         await targetRestaurant.update(restaurant)
         req.flash('success_messages', `成功編輯餐廳: ${targetRestaurant.dataValues.name}`)
-        res.redirect(`/admin/restaurants/${req.params.id}`)
+        res.redirect(`/admin/restaurants`)
       }
       else {
         const targetRestaurant = await Restaurant.findByPk(req.params.id)
         await targetRestaurant.update(restaurant)
         req.flash('success_messages', `成功編輯餐廳: ${targetRestaurant.dataValues.name}`)
-        res.redirect(`/admin/restaurants/${req.params.id}`)
+        res.redirect(`/admin/restaurants`)
       }
     } catch (err) {
       console.log(err)
