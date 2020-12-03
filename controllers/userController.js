@@ -41,7 +41,7 @@ const userController = {
       req.body.password = hashedPassword
       await User.create(req.body)
       req.flash('success_messages', '成功註冊帳號，請重新登入')
-      res.redirect('/signin')
+      res.redirect('/users/signin')
     } catch (err) {
       console.log(err)
       next(err)
@@ -57,7 +57,7 @@ const userController = {
   logout: (req, res) => {
     req.flash('success_messages', '成功登出！')
     req.logout()
-    res.redirect('/signin')
+    res.redirect('/users/signin')
   },
   getUser: async (req, res, next) => {
     try {

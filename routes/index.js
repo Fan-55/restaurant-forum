@@ -1,84 +1,17 @@
-const helpers = require('../_helpers')
-const restController = require('../controllers/restController')
-const adminController = require('../controllers/adminController.js')
-const userController = require('../controllers/userController')
-const categoryController = require('../controllers/categoryController')
-const commentController = require('../controllers/commentController.js')
+const express = require('express')
+const router = express.Router()
 
-const multer = require('multer')
-const upload = multer({ dest: 'temp/' })
+const { authenticated, authenticatedAdmin } = require('../middleware/check-auth')
 
-module.exports = (app, passport) => {
-  //user authentication and admin authentication
-  const authenticated = (req, res, next) => {
-    // if(req.isAuthenticated)
-    if (helpers.ensureAuthenticated(req)) {
-      return next()
-    }
-    res.redirect('/signin')
-  }
-  const authenticatedAdmin = (req, res, next) => {
-    // if(req.isAuthenticated)
-    if (helpers.ensureAuthenticated(req)) {
-      if (helpers.getUser(req).isAdmin) { return next() }
-      return res.redirect('/')
-    }
-    res.redirect('/signin')
-  }
+const restaurants = require('./modules/restaurants')
+const users = require('./modules/users')
+const admin = require('./modules/admin')
+const comments = require('./modules/comments')
 
-  app.get('/', authenticated, (req, res) => { res.redirect('/restaurants') })
-  app.get('/restaurants', authenticated, restController.getRestaurants)
-  app.get('/restaurants/:id', authenticated, restController.getRestaurant)
+router.get('/', (req, res) => res.redirect('/restaurants'))
+router.use('/restaurants', authenticated, restaurants)
+router.use('/users', users)
+router.use('/admin', authenticatedAdmin, admin)
+router.use('/comments', comments)
 
-  app.post('/comments', authenticated, commentController.postComment)
-  app.delete('/comments/:id', authenticatedAdmin, commentController.deleteComment)
-
-  //admin
-  app.get('/admin', authenticatedAdmin, (req, res) => res.redirect('/admin/restaurants'))
-  app.get('/admin/restaurants', authenticatedAdmin, adminController.getRestaurants)
-  app.get('/admin/restaurants/create', authenticatedAdmin, adminController.createRestaurant)
-  app.post('/admin/restaurants', authenticatedAdmin, upload.single('image'), adminController.postRestaurant)
-  app.get('/admin/restaurants/:id', authenticatedAdmin, adminController.getRestaurant)
-  app.get('/admin/restaurants/:id/edit', authenticatedAdmin, adminController.editRestaurant)
-  app.put('/admin/restaurants/:id', authenticatedAdmin, upload.single('image'), adminController.putRestaurant)
-  app.delete('/admin/restaurants/:id', authenticatedAdmin, adminController.deleteRestaurant)
-
-  app.get('/admin/users', authenticatedAdmin, adminController.getUsers)
-  app.put('/admin/users/:id/toggleAdmin', authenticatedAdmin, adminController.toggleAdmin)
-
-  app.get('/admin/categories', authenticatedAdmin, categoryController.getCategories)
-  app.post('/admin/categories', authenticatedAdmin, categoryController.postCategory)
-  app.get('/admin/categories/:id', authenticatedAdmin, categoryController.getCategories)
-  app.put('/admin/categories/:id', authenticatedAdmin, categoryController.putCategory)
-  app.delete('/admin/categories/:id', authenticatedAdmin, categoryController.deleteCategory)
-
-  //user signup
-  app.get('/signup', userController.signUpPage)
-  app.post('/signup', userController.signUp)
-
-  //user signin
-  app.get('/signin', userController.signInPage)
-  app.post('/signin', passport.authenticate('local', { failureRedirect: '/signin', failureFlash: true }), userController.signIn)
-  app.get('/logout', userController.logout)
-
-  //users
-  app.get('/users/:id', authenticated, (req, res, next) => {
-    const userId = res.locals.user.id.toString() //user id of the authenticated user
-    const profileUserId = req.params.id // user id of the user profile
-    res.locals.isOwnProfile = userId === profileUserId ? true : false
-    next()
-  }, userController.getUser)
-
-  app.get('/users/:id/edit', authenticated, (req, res, next) => {
-    const userId = res.locals.user.id.toString() //user id of the authenticated user
-    const profileUserId = req.params.id // user id of the user profile
-    if (userId === profileUserId) {
-      return next()
-    } else {
-      req.flash('error_messages', '無權訪問該頁面')
-      res.redirect(`/users/${profileUserId}`)
-    }
-  }, userController.editUser)
-
-  app.put('/users/:id', authenticated, upload.single('image'), userController.putUser)
-}
+module.exports = router

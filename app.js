@@ -28,11 +28,10 @@ app.use((req, res, next) => {
   res.locals.user = helpers.getUser(req)
   next()
 })
+app.use(require('./routes/index'))
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
-
-require('./routes')(app, passport)
 
 module.exports = app
