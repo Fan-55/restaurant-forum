@@ -4,40 +4,52 @@ const Category = db.Category
 const Comment = db.Comment
 const User = db.User
 
-const pageLimit = 10
-
 let restController = {
-  getRestaurants: async (req, res) => {
-    let offset = 0
-    const where = {}
-    let categoryId = ''
-    if (req.query.page) {
-      offset = (req.query.page - 1) * pageLimit
-    }
-    if (req.query.categoryId) {
-      categoryId = Number(req.query.categoryId)
-      where.CategoryId = categoryId
-    }
-    const categories = await Category.findAll({ raw: true, nest: true })
-    let result = await Restaurant.findAndCountAll({ raw: true, nest: true, include: [Category], where, offset, limit: pageLimit })
-    let restaurants = result.rows
-    restaurants = restaurants.map((r) => ({
-      ...r,
-      description: r.description.substring(0, 50)
-    }))
+  getRestaurants: async (req, res, next) => {
+    try {
+      let CategoryId = ''
+      const categories = await Category.findAll({ raw: true, nest: true })
 
-    const page = Number(req.query.page) || 1
-    const pages = Math.ceil(result.count / pageLimit)
-    const totalPage = Array.from({ length: pages }).map((item, index) => index + 1)
-    let prev = page - 1 < 1 ? 1 : page - 1
-    let next = page + 1 > pages ? pages : page + 1
+      let offset = 0
+      const pageLimit = 10
+      if (req.query.page) {
+        offset = (req.query.page - 1) * pageLimit
+      }
 
-    return res.render('restaurants', { restaurants, categories, categoryId, page, totalPage, prev, next })
+      const where = {}
+      if (req.query.CategoryId) {
+        CategoryId = Number(req.query.CategoryId)
+        where.CategoryId = CategoryId
+      }
+
+      let result = await Restaurant.findAndCountAll({ raw: true, nest: true, include: [Category], where, offset, limit: pageLimit })
+      let restaurants = result.rows
+      restaurants = restaurants.map((r) => ({
+        ...r,
+        description: r.description.substring(0, 50)
+      }))
+
+      const page = Number(req.query.page) || 1 //if query doesn't have page property, meaning it's on the 1st page
+      const pages = Math.ceil(result.count / pageLimit) //counts of required pages
+      const totalPage = Array.from({ length: pages }).map((item, index) => index + 1) //array of pagination
+      let prev = page - 1 < 1 ? 1 : page - 1
+      let next = page + 1 > pages ? pages : page + 1
+
+      return res.render('restaurants', { restaurants, categories, CategoryId, page, totalPage, prev, next })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   },
-  getRestaurant: async (req, res) => {
-    let restaurant = await Restaurant.findByPk(req.params.id, { include: [Category, { model: Comment, include: [User] }] })
-    restaurant = restaurant.toJSON()
-    res.render('restaurant', { restaurant })
+  getRestaurant: async (req, res, next) => {
+    try {
+      let restaurant = await Restaurant.findByPk(req.params.id, { include: [Category, { model: Comment, include: [User] }] })
+      restaurant = restaurant.toJSON()
+      res.render('restaurant', { restaurant })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 module.exports = restController
