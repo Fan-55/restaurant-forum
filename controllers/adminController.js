@@ -59,12 +59,12 @@ const adminController = {
         const image = await uploadToImgur
         restaurant.image = image ? image.data.link : null
         const newRestaurant = await Restaurant.create(restaurant)
-        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.name}`)
+        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.dataValues.name}`)
         return res.redirect('/admin/restaurants')
       } else {
         restaurant.image = null
         const newRestaurant = await Restaurant.create(restaurant)
-        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.name}`)
+        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.dataValues.name}`)
         return res.redirect('/admin/restaurants')
       }
     } catch (err) {
@@ -122,14 +122,14 @@ const adminController = {
         const image = await uploadToImgur
         restaurant.image = image ? image.data.link : null
         const targetRestaurant = await Restaurant.findByPk(req.params.id)
-        const editedRestaurant = await targetRestaurant.update(restaurant)
-        req.flash('success_messages', `成功編輯餐廳: ${editedRestaurant.name}`)
+        await targetRestaurant.update(restaurant)
+        req.flash('success_messages', `成功編輯餐廳: ${targetRestaurant.dataValues.name}`)
         res.redirect(`/admin/restaurants/${req.params.id}`)
       }
       else {
         const targetRestaurant = await Restaurant.findByPk(req.params.id)
-        const editedRestaurant = await targetRestaurant.update(restaurant)
-        req.flash('success_messages', `成功編輯餐廳: ${editedRestaurant.name}`)
+        await targetRestaurant.update(restaurant)
+        req.flash('success_messages', `成功編輯餐廳: ${targetRestaurant.dataValues.name}`)
         res.redirect(`/admin/restaurants/${req.params.id}`)
       }
     } catch (err) {
@@ -142,6 +142,7 @@ const adminController = {
     try {
       const restaurant = await Restaurant.findByPk(req.params.id)
       await restaurant.destroy()
+      req.flash('success_messages', `餐廳: ${restaurant.dataValues.name}已刪除`)
       res.redirect('/admin/restaurants')
     } catch (err) {
       console.log(err)
@@ -160,9 +161,9 @@ const adminController = {
   toggleAdmin: async (req, res, next) => {
     try {
       const user = await User.findByPk(req.params.id)
-      const toggledUser = await user.update({ isAdmin: user.isAdmin ? false : true })
-      const userRole = toggledUser.isAdmin ? 'admin' : 'user'
-      req.flash('success_messages', `${user.name}'s role is successfully updated to ${userRole}`)
+      await user.update({ isAdmin: user.isAdmin ? false : true })
+      const userRole = user.dataValues.isAdmin ? 'admin' : 'user'
+      req.flash('success_messages', `${user.dataValues.name}'s role is successfully updated to ${userRole}`)
       res.redirect('/admin/users')
     } catch (err) {
       console.log(err)
