@@ -2,55 +2,65 @@ const db = require('../models/index')
 const Category = db.Category
 
 module.exports = {
-  getCategories: (req, res) => {
-    Category.findAll({
-      raw: true,
-      nest: true
-    }).then(categories => {
+  //"GET /admin/categories" uses this controller to render all categories
+  //"GET /admin/categories/:id" uses this controller to render edit category name page
+  getCategories: async (req, res, next) => {
+    try {
+      const categories = await Category.findAll({ raw: true, nest: true })
       if (req.params.id) {
-        Category.findByPk(req.params.id)
-          .then((category) => {
-            return res.render('admin/categories', {
-              categories: categories,
-              category: category.toJSON()
-            })
-          })
-      } else {
-        return res.render('admin/categories', { categories: categories })
+        const selectedCategory = categories.find(category => category.id.toString() === req.params.id)
+        return res.render('admin/categories', { categories, category: selectedCategory })
       }
-    })
-  },
-  postCategory: (req, res) => {
-    const { name } = req.body
-    if (!name) {
-      req.flash('error_messages', '沒有輸入種類')
-      res.redirect('back')
-    } else {
-      Category.create({ name })
-        .then(() => res.redirect('/admin/categories'))
+      res.render('admin/categories', { categories })
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
   },
-  putCategory: (req, res) => {
-    if (!req.body.name) {
-      req.flash('error_messages', 'name didn\'t exist')
-      return res.redirect('back')
-    } else {
-      return Category.findByPk(req.params.id)
-        .then((category) => {
-          category.update(req.body)
-            .then((category) => {
-              res.redirect('/admin/categories')
-            })
-        })
+  //add new category to the list
+  postCategory: async (req, res, next) => {
+    try {
+      const { name } = req.body
+      if (!name.trim()) {
+        req.flash('error_messages', '沒有輸入餐廳種類')
+        res.redirect('/admin/categories')
+      } else {
+        const newCategory = await Category.create({ name })
+        req.flash('success_messages', `成功新增餐廳種類:${newCategory.dataValues.name}`)
+        res.redirect('/admin/categories')
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
   },
-  deleteCategory: (req, res) => {
-    return Category.findByPk(req.params.id)
-      .then((category) => {
-        category.destroy()
-          .then((category) => {
-            res.redirect('/admin/categories')
-          })
-      })
+  //modify existed category's name
+  putCategory: async (req, res, next) => {
+    try {
+      if (!req.body.name.trim()) {
+        req.flash('error_messages', '沒有輸入種類')
+        return res.redirect('/admin/categories')
+      } else {
+        const targetCategory = await Category.findByPk(req.params.id)
+        await targetCategory.update(req.body)
+        req.flash('success_messages', `成功修改餐廳種類:${targetCategory.dataValues.name}`)
+        res.redirect('/admin/categories')
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  //delete existed category
+  deleteCategory: async (req, res, next) => {
+    try {
+      const targetCategory = await Category.findByPk(req.params.id)
+      await targetCategory.destroy()
+      req.flash('success_messages', `成功刪除餐廳種類:${targetCategory.dataValues.name}`)
+      res.redirect('/admin/categories')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
