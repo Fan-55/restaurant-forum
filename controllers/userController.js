@@ -11,28 +11,40 @@ const userController = {
   signUpPage: (req, res) => {
     return res.render('signup')
   },
-  signUp: (req, res) => {
-    if (req.body.passwordCheck !== req.body.password) {
-      req.flash('error_messages', '兩次密碼輸入不同！')
-      return res.redirect('/signup')
-    } else {
-      User.findOne({ where: { email: req.body.email } })
-        .then((user) => {
-          if (user) {
-            req.flash('error_messages', '信箱重複')
-            return res.redirect('/signup')
-          } else {
-            User.create({
-              name: req.body.name,
-              email: req.body.email,
-              password: bcrypt.hashSync(req.body.password, bcrypt.genSaltSync(10), null)
-            })
-              .then(user => {
-                req.flash('success_messages', '成功註冊帳號！')
-                return res.redirect('/signin')
-              })
-          }
-        })
+  signUp: async (req, res, next) => {
+    try {
+      const { name, email, password, passwordCheck } = req.body
+      const errors = {}
+      //check required attributes
+      if (!name.trim()) {
+        errors.name = '名稱不可空白'
+      }
+      if (!email.trim()) {
+        errors.email = 'Email不可空白'
+      }
+      if (!password) {
+        errors.password = '密碼不可空白'
+      }
+      if (passwordCheck !== password) {
+        errors.passwordCheck = '密碼和確認密碼不相符'
+      }
+      //check duplicate email
+      const user = await User.findOne({ where: { email }, raw: true, nest: true })
+      if (user) {
+        errors.userExist = '此Email已註冊'
+      }
+      //if one of errors exists, go back to signup page
+      if (Object.keys(errors).length) {
+        return res.render('signup', { errors, info: req.body })
+      }
+      const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10))
+      req.body.password = hashedPassword
+      await User.create(req.body)
+      req.flash('success_messages', '成功註冊帳號，請重新登入')
+      res.redirect('/signin')
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
   },
   signInPage: (req, res) => {
@@ -47,42 +59,63 @@ const userController = {
     req.logout()
     res.redirect('/signin')
   },
-  getUser: async (req, res) => {
-    let userProfile = await User.findByPk(req.params.id, { include: [{ model: Comment, include: [Restaurant] }] })
-    userProfile = userProfile.toJSON()
-    const commentCount = userProfile.Comments.length
-    console.log(userProfile)
-    res.render('profile', { userProfile, commentCount })
-  },
-  editUser: async (req, res) => {
-    let userProfile = await User.findByPk(req.params.id)
-    userProfile = userProfile.toJSON()
-    res.render('editProfile', { userProfile })
-  },
-  putUser: async (req, res) => {
-    const { name } = req.body
-    const image = req.file
-
-    //name is required
-    if (!name) {
-      req.flash('error_messages', '名稱不能為空白')
-      return res.redirect('back')
+  getUser: async (req, res, next) => {
+    try {
+      let userProfile = await User.findByPk(req.params.id, { include: [{ model: Comment, include: [Restaurant] }] })
+      userProfile = userProfile.toJSON()
+      const commentCount = userProfile.Comments.length
+      res.render('profile', { userProfile, commentCount })
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
+  },
+  editUser: async (req, res, next) => {
+    try {
+      let userProfile = await User.findByPk(req.params.id)
+      userProfile = userProfile.toJSON()
+      res.render('editProfile', { userProfile })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  putUser: async (req, res, next) => {
+    try {
+      const { name } = req.body
+      //name is required
+      if (!name.trim()) {
+        req.flash('error_messages', '名稱不能為空白')
+        return res.redirect('back')
+      }
 
-    //if image file exists, upload to imgur; else, update name
-    if (image) {
-      imgur.setClientID(IMGUR_CLIENT_ID)
-      imgur.upload(image.path, async (err, img) => {
+      //if image file exists, upload to imgur; else, update name only
+      const file = req.file
+      if (file) {
+        imgur.setClientID(IMGUR_CLIENT_ID)
+        const uploadToImgur = new Promise((resolve, reject) => {
+          imgur.upload(file.path, (err, image) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(image)
+            }
+          })
+        })
+        const image = await uploadToImgur
         const user = await User.findByPk(req.params.id)
-        await user.update({ name: name, image: image ? img.data.link : null })
-        req.flash('success_messages', `成功修改${user.name}`)
+        await user.update({ name: name, image: image ? image.data.link : null })
+        req.flash('success_messages', `成功修改${user.dataValues.name}`)
+        res.redirect(`/users/${req.params.id}`)
+      } else {
+        const user = await User.findByPk(req.params.id)
+        await user.update({ name })
+        req.flash('success_messages', `成功修改${user.dataValues.name}`)
         return res.redirect(`/users/${req.params.id}`)
-      })
-    } else {
-      const user = await User.findByPk(req.params.id)
-      await user.update({ name })
-      req.flash('success_messages', `成功修改${user.name}`)
-      return res.redirect(`/users/${req.params.id}`)
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
     }
   }
 }
