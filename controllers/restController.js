@@ -50,6 +50,18 @@ let restController = {
       console.log(err)
       next(err)
     }
+  },
+  getFeeds: async (req, res, next) => {
+    try {
+      const [restaurants, comments] = await Promise.all([
+        Restaurant.findAll({ order: [['createdAt', 'DESC']], include: [Category], limit: 10, raw: true, nest: true }),
+        Comment.findAll({ order: [['createdAt', 'DESC']], include: [User, Restaurant], limit: 10, raw: true, nest: true })
+      ])
+      res.render('feeds', { restaurants, comments })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 module.exports = restController
