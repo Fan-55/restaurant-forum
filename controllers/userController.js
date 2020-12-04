@@ -154,6 +154,22 @@ const userController = {
       next(err)
     }
   },
+  getTopUser: async (req, res, next) => {
+    try {
+      let users = await User.findAll({ include: [{ model: User, as: 'Followers' }], raw: true, nest: true })
+      users = users.map(user => ({
+        ...user,
+        FollowerCount: user.Followers.length,
+        isFollowed: req.user.Followings.map(d => d.id).includes(user.id)
+      }))
+      console.log(users)
+      users = users.sort((a, b) => b.FollowerCount - a.FollowerCount)
+      res.render('topUser', { users })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  }
 }
 
 module.exports = userController
