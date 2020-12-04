@@ -40,9 +40,16 @@ const restController = {
   },
   getRestaurant: async (req, res, next) => {
     try {
-      const restaurant = await Restaurant.findByPk(req.params.id, { include: [Category, { model: Comment, include: [User] }] })
+      const restaurant = await Restaurant.findByPk(req.params.id, {
+        include: [
+          Category,
+          { model: Comment, include: [User] },
+          { model: User, as: 'FavoritedUsers' }
+        ]
+      })
       await restaurant.increment('viewCounts')
-      res.render('restaurant', { restaurant: restaurant.toJSON() })
+      const isFavorite = restaurant.FavoritedUsers.map(d => d.id).includes(req.user.id)
+      res.render('restaurant', { restaurant: restaurant.toJSON(), isFavorite })
     } catch (err) {
       console.log(err)
       next(err)
