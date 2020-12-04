@@ -1,8 +1,7 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const bcrypt = require('bcryptjs')
-const db = require('../models')
-const User = db.User
+const { User, Restaurant } = require('../models')
 
 // setup passport strategy
 passport.use(new LocalStrategy(
@@ -13,24 +12,26 @@ passport.use(new LocalStrategy(
     passReqToCallback: true
   },
   // authenticate user
-  (req, username, password, cb) => {
-    User.findOne({ where: { email: username } }).then(user => {
-      if (!user) return cb(null, false, req.flash('error_messages', '帳號或密碼輸入錯誤'))
-      if (!bcrypt.compareSync(password, user.password)) return cb(null, false, req.flash('error_messages', '帳號或密碼輸入錯誤！'))
-      return cb(null, user)
-    })
+  async (req, username, password, done) => {
+    const user = await User.findOne({ where: { email: username } })
+    if (!user) {
+      return done(null, false, req.flash('error_messages', '帳號或密碼輸入錯誤'))
+    }
+    if (!bcrypt.compareSync(password, user.password)) {
+      return done(null, false, req.flash('error_messages', '帳號或密碼輸入錯誤！'))
+    }
+    return done(null, user)
   }
 ))
 
 // serialize and deserialize user
-passport.serializeUser((user, cb) => {
-  cb(null, user.id)
+passport.serializeUser((user, done) => {
+  done(null, user.id)
 })
-passport.deserializeUser((id, cb) => {
-  User.findByPk(id).then(user => {
-    user = user.toJSON()
-    return cb(null, user)
-  })
+passport.deserializeUser(async (id, done) => {
+  let user = await User.findByPk(id, { include: { model: Restaurant, as: 'FavoritedRestaurants' } })
+  user = user.toJSON()
+  return done(null, user)
 })
 
 module.exports = passport

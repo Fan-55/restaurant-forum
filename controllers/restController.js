@@ -1,10 +1,6 @@
-const db = require('../models')
-const Restaurant = db.Restaurant
-const Category = db.Category
-const Comment = db.Comment
-const User = db.User
+const { Restaurant, Category, Comment, User } = require('../models')
 
-let restController = {
+const restController = {
   getRestaurants: async (req, res, next) => {
     try {
       let CategoryId = ''
@@ -24,9 +20,10 @@ let restController = {
 
       let result = await Restaurant.findAndCountAll({ raw: true, nest: true, include: [Category], where, offset, limit: pageLimit })
       let restaurants = result.rows
-      restaurants = restaurants.map((r) => ({
+      restaurants = restaurants.map(r => ({
         ...r,
-        description: r.description.substring(0, 50)
+        description: r.description.substring(0, 50),
+        isFavorite: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id)
       }))
 
       const page = Number(req.query.page) || 1 //if query doesn't have page property, meaning it's on the 1st page
