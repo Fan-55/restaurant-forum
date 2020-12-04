@@ -2,10 +2,7 @@ const bcrypt = require('bcryptjs')
 const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 
-const db = require('../models/index')
-const User = db.User
-const Comment = db.Comment
-const Restaurant = db.Restaurant
+const { User, Comment, Restaurant, Favorite } = require('../models/index')
 
 const userController = {
   signUpPage: (req, res) => {
@@ -113,6 +110,25 @@ const userController = {
         req.flash('success_messages', `成功修改${user.dataValues.name}`)
         return res.redirect(`/users/${req.params.id}`)
       }
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  addFavorite: async (req, res, next) => {
+    try {
+      await Favorite.create({ UserId: req.user.id, RestaurantId: req.params.RestaurantId })
+      res.redirect('/restaurants')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  removeFavorite: async (req, res, next) => {
+    try {
+      const targetRestaurant = await Favorite.findOne({ where: { RestaurantId: req.params.RestaurantId, UserId: req.user.id } })
+      await targetRestaurant.destroy()
+      res.redirect('/restaurants')
     } catch (err) {
       console.log(err)
       next(err)
