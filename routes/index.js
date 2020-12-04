@@ -9,6 +9,7 @@ const admin = require('./modules/admin')
 const comments = require('./modules/comments')
 const favorite = require('./modules/favorite')
 const like = require('./modules/like')
+const following = require('./modules/following')
 
 router.get('/', (req, res) => res.redirect('/restaurants'))
 router.use('/restaurants', authenticated, restaurants)
@@ -17,5 +18,6 @@ router.use('/admin', authenticatedAdmin, admin)
 router.use('/comments', comments)
 router.use('/favorite', authenticated, favorite)
 router.use('/like', authenticated, like)
+router.use('/following', authenticated, following)
 
 module.exports = router
