@@ -1,4 +1,5 @@
 const { Restaurant, Category, Comment, User } = require('../models')
+const helpers = require('../_helpers')
 
 const restController = {
   getRestaurants: async (req, res, next) => {
@@ -23,7 +24,8 @@ const restController = {
       restaurants = restaurants.map(r => ({
         ...r,
         description: r.description.substring(0, 50),
-        isFavorite: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id)
+        isFavorite: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id),
+        isLiked: req.user.LikedRestaurants.map(d => d.id).includes(r.id)
       }))
 
       const page = Number(req.query.page) || 1 //if query doesn't have page property, meaning it's on the 1st page
@@ -44,12 +46,14 @@ const restController = {
         include: [
           Category,
           { model: Comment, include: [User] },
-          { model: User, as: 'FavoritedUsers' }
+          { model: User, as: 'FavoritedUsers' },
+          { model: User, as: 'LikedUsers' },
         ]
       })
       await restaurant.increment('viewCounts')
-      const isFavorite = restaurant.FavoritedUsers.map(d => d.id).includes(req.user.id)
-      res.render('restaurant', { restaurant: restaurant.toJSON(), isFavorite })
+      const isFavorite = restaurant.FavoritedUsers.map(d => d.id).includes(helpers.getUser(req).id)
+      const isLiked = restaurant.LikedUsers.map(d => d.id).includes(helpers.getUser(req).id)
+      res.render('restaurant', { restaurant: restaurant.toJSON(), isFavorite, isLiked })
     } catch (err) {
       console.log(err)
       next(err)

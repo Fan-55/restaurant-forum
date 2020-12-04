@@ -29,7 +29,12 @@ passport.serializeUser((user, done) => {
   done(null, user.id)
 })
 passport.deserializeUser(async (id, done) => {
-  let user = await User.findByPk(id, { include: { model: Restaurant, as: 'FavoritedRestaurants' } })
+  let user = await User.findByPk(id, {
+    include: [
+      { model: Restaurant, as: 'FavoritedRestaurants' },
+      { model: Restaurant, as: 'LikedRestaurants' }
+    ]
+  })
   user = user.toJSON()
   return done(null, user)
 })

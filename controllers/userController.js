@@ -2,7 +2,8 @@ const bcrypt = require('bcryptjs')
 const imgur = require('imgur-node-api')
 const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 
-const { User, Comment, Restaurant, Favorite } = require('../models/index')
+const { User, Comment, Restaurant, Favorite, Like } = require('../models/index')
+const helpers = require('../_helpers')
 
 const userController = {
   signUpPage: (req, res) => {
@@ -133,7 +134,26 @@ const userController = {
       console.log(err)
       next(err)
     }
-  }
+  },
+  likeRestaurant: async (req, res, next) => {
+    try {
+      await Like.create({ UserId: helpers.getUser(req).id, RestaurantId: req.params.RestaurantId })
+      res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  unlikeRestaurant: async (req, res, next) => {
+    try {
+      const targetLike = await Like.findOne({ where: { UserId: helpers.getUser(req).id, RestaurantId: req.params.RestaurantId } })
+      await targetLike.destroy()
+      res.redirect('back')
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
 }
 
 module.exports = userController
