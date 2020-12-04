@@ -119,7 +119,7 @@ const userController = {
   addFavorite: async (req, res, next) => {
     try {
       await Favorite.create({ UserId: req.user.id, RestaurantId: req.params.RestaurantId })
-      res.redirect('/restaurants')
+      res.redirect('back')
     } catch (err) {
       console.log(err)
       next(err)
@@ -127,9 +127,9 @@ const userController = {
   },
   removeFavorite: async (req, res, next) => {
     try {
-      const targetRestaurant = await Favorite.findOne({ where: { RestaurantId: req.params.RestaurantId, UserId: req.user.id } })
-      await targetRestaurant.destroy()
-      res.redirect('/restaurants')
+      const targetFavorite = await Favorite.findOne({ where: { RestaurantId: req.params.RestaurantId, UserId: req.user.id } })
+      await targetFavorite.destroy()
+      res.redirect('back')
     } catch (err) {
       console.log(err)
       next(err)
