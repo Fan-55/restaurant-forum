@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'RestaurantId',
         as: 'LikedUsers'
       })
+      Restaurant.hasMany(models.Favorite)
     }
   };
   Restaurant.init({

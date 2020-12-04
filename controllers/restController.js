@@ -1,5 +1,6 @@
-const { Restaurant, Category, Comment, User } = require('../models')
+const { Restaurant, Category, Comment, User, Favorite } = require('../models')
 const helpers = require('../_helpers')
+const { Sequelize } = require('sequelize')
 
 const restController = {
   getRestaurants: async (req, res, next) => {
@@ -81,5 +82,26 @@ const restController = {
       next(err)
     }
   },
+  getTopRestaurant: async (req, res, next) => {
+    let restaurants = await Restaurant.findAll({
+      attributes: {
+        include: [[Sequelize.fn('COUNT', Sequelize.col('favorites.RestaurantId')), 'favoriteCount']]
+      },
+      include: [{
+        model: Favorite, attributes: []
+      }],
+      group: ['restaurant.id']
+    })
+    restaurants = restaurants.map(r => {
+      return {
+        ...r.dataValues,
+        description: r.description.substring(0, 50),
+        isFavorite: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id)
+      }
+    })
+    restaurants = restaurants.sort((a, b) => b.favoriteCount - a.favoriteCount) //desc by favoriteCount
+    restaurants = restaurants.slice(0, 10) //get top 10 restaurants
+    res.render('topRestaurant', { restaurants })
+  }
 }
 module.exports = restController
