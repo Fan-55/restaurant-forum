@@ -1,31 +1,107 @@
 <div class="container">
-  <div class="profile-wrapper">
-    <div class="user-info-title">
-      使用者資訊
+
+  <div class="profile-wrapper d-flex mb-3">
+
+    <div class="user-image">
+      <img src="{{userProfile.image}}" alt="user-image">
     </div>
-    <div class="d-flex">
-      <div class="image mr-3" style="width: 300px;">
-        <img src="{{userProfile.image}}" alt="user-image" style="width: 100%;">
+
+    <div class="user-info">
+
+      <h2 class="user-name">{{userProfile.name}}</h2>
+      <p class="user-email">{{userProfile.email}}</p>
+      <div class="counts">
+        <p class="user-commented-restaurant-count"><strong>{{commentCount}}</strong> 已評論餐廳</p>
+        <p class="user-favorite-restaurant-count"><strong>{{favoriteCount}}</strong> 收藏的餐廳</p>
+        <p class="user-following-count"><strong>{{followingCount}}</strong> followings(追蹤者)</p>
+        <p class="user-follower-count"><strong>{{followerCount}}</strong> followers(追隨者)</p>
       </div>
-      <div class="user-info">
-        <h2 class="user-name">{{userProfile.name}}</h2>
-        <p class="user-email">{{userProfile.email}}</p>
-        <p class="user-commented-restaurant-count">{{commentCount}}間已評論餐廳</p>
+
+      <div class="button">
         {{#if isOwnProfile}}
         <a class="btn btn-primary" href="/users/{{userProfile.id}}/edit">edit</a>
+        {{else if userProfile.isFollowed}}
+        <form action="/following/{{userProfile.id}}?_method=DELETE" method="post">
+          <button type="submit" class="btn btn-danger">取消追蹤</button>
+        </form>
+        {{else}}
+        <form action="/following/{{userProfile.id}}" method="post">
+          <button type="submit" class="btn btn-primary">追蹤</button>
+        </form>
         {{/if}}
       </div>
+
     </div>
   </div>
 
-  <div class="comment-wrapper mt-2">
-    <div class="comment-count">{{commentCount}}間已評論餐廳</div>
-    <div class="commented-restaurant d-flex flex-wrap">
-      {{#each userProfile.Comments}}
-      <div class="img mr-3" style="width: 100px;"> <a href="/restaurants/{{this.Restaurant.id}}"><img
-            src="{{this.Restaurant.image}}" alt="restaurant-photo" style="width: 100%;"></a>
+  <div class="counts-list-wrapper d-flex">
+
+    <div class="follow">
+
+      <div class="following-wrapper mt-2">
+        <div class="following-count title">
+          <strong>{{followingCount}}</strong> followings(追蹤者)
+        </div>
+        <div class="following-restaurant count-images d-flex flex-wrap">
+          {{#each userProfile.Followings}}
+          <div class="img-wrapper mr-3" style="width: 100px;">
+            <a href="/users/{{this.id}}">
+              <img src="{{this.image}}" alt="user-photo" style="width: 100%;">
+            </a>
+          </div>
+          {{/each}}
+        </div>
       </div>
-      {{/each}}
+
+      <div class="follower-wrapper mt-2">
+        <div class="follower-count title">
+          <strong>{{followerCount}}</strong> followers(追隨者)
+        </div>
+        <div class="follower-restaurant count-images d-flex flex-wrap">
+          {{#each userProfile.Followers}}
+          <div class="img-wrapper mr-3" style="width: 100px;">
+            <a href="/users/{{this.id}}">
+              <img src="{{this.image}}" alt="user-photo" style="width: 100%;">
+            </a>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+
     </div>
+
+    <div class="restaurant">
+      <div class="comment-wrapper mt-2">
+        <div class="comment-count title">
+          <strong>{{commentCount}}</strong>已評論餐廳
+        </div>
+        <div class="commented-restaurant count-images d-flex flex-wrap">
+          {{#each commentsOfUniqueRestaurants}}
+          <div class="img-wrapper mr-3" style="width: 100px;">
+            <a href="/restaurants/{{this.Restaurant.id}}">
+              <img src="{{this.Restaurant.image}}" alt="restaurant-photo" style="width: 100%;">
+            </a>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+
+      <div class="favorite-wrapper mt-2">
+        <div class="favorite-count title">
+          <strong>{{favoriteCount}}</strong>收藏的餐廳
+        </div>
+        <div class="favorite-restaurant count-images d-flex flex-wrap">
+          {{#each userProfile.FavoritedRestaurants}}
+          <div class="img-wrapper mr-3" style="width: 100px;">
+            <a href="/restaurants/{{this.id}}">
+              <img src="{{this.image}}" alt="restaurant-photo" style="width: 100%;">
+            </a>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+
   </div>
+
 </div>

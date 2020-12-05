@@ -59,10 +59,27 @@ const userController = {
   },
   getUser: async (req, res, next) => {
     try {
-      let userProfile = await User.findByPk(req.params.id, { include: [{ model: Comment, include: [Restaurant] }] })
+      let userProfile = await User.findByPk(req.params.id, {
+        include: [
+          { model: Comment, include: [Restaurant] },
+          { model: Restaurant, as: 'FavoritedRestaurants' },
+          { model: User, as: 'Followers' },
+          { model: User, as: 'Followings' },
+        ]
+      })
       userProfile = userProfile.toJSON()
-      const commentCount = userProfile.Comments.length
-      res.render('profile', { userProfile, commentCount })
+      userProfile.isFollowed = userProfile.Followers.map(d => d.id).includes(helpers.getUser(req).id)
+
+      //remove comments of same restaurant
+      const commentsOfUniqueRestaurants = userProfile.Comments.filter((elem, index, self) =>
+        self.findIndex(selfElem => selfElem.RestaurantId === elem.RestaurantId) === index
+      )
+      const commentCount = commentsOfUniqueRestaurants.length
+      const favoriteCount = userProfile.FavoritedRestaurants.length
+      const followingCount = userProfile.Followings.length
+      const followerCount = userProfile.Followers.length
+
+      res.render('profile', { userProfile, commentCount, favoriteCount, followingCount, followerCount, commentsOfUniqueRestaurants })
     } catch (err) {
       console.log(err)
       next(err)
