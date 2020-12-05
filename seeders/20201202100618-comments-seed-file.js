@@ -1,12 +1,8 @@
 'use strict';
 
-const { random } = require('faker');
-
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    const db = require('../models/index')
-    const User = db.User
-    const Restaurant = db.Restaurant
+    const { User, Restaurant } = require('../models/index')
 
     let userIds = await User.findAll({ raw: true, nest: true, attributes: ['id'] })
     userIds = userIds.map((item) => { return item.id })
