@@ -24,21 +24,16 @@ module.exports = {
     })
   },
   //modify existed category's name
-  putCategory: async (req, res, next) => {
-    try {
-      if (!req.body.name.trim()) {
-        req.flash('error_messages', '沒有輸入種類')
-        return res.redirect('/admin/categories')
-      } else {
-        const targetCategory = await Category.findByPk(req.params.id)
-        await targetCategory.update(req.body)
-        req.flash('success_messages', `成功修改餐廳種類:${targetCategory.dataValues.name}`)
-        res.redirect('/admin/categories')
+  putCategory: (req, res, next) => {
+    categoryService.putCategory(req, res, next, (data) => {
+      if (data.status === 'error') {
+        req.flash('error_messages', data.message)
       }
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+      if (data.status === 'success') {
+        req.flash('success_messages', data.message)
+      }
+      return res.redirect('/admin/categories')
+    })
   },
   //delete existed category
   deleteCategory: async (req, res, next) => {

@@ -27,5 +27,20 @@ module.exports = {
       console.log(err)
       next(err)
     }
+  },
+  putCategory: async (req, res, next, callback) => {
+    try {
+      if (!req.body.name) {
+        return callback({ status: 'error', message: '沒有輸入種類' })
+      } else {
+        const targetCategory = await Category.findByPk(req.params.id)
+        await targetCategory.update(req.body)
+        return callback({ status: 'success', message: `成功修改餐廳種類:${targetCategory.dataValues.name}` })
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
   }
 }
