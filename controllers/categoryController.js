@@ -1,21 +1,13 @@
-const db = require('../models/index')
-const Category = db.Category
+const { Category } = require('../models/index')
+const categoryService = require('../services/categoryService')
 
 module.exports = {
   //"GET /admin/categories" uses this controller to render all categories
   //"GET /admin/categories/:id" uses this controller to render edit category name page
-  getCategories: async (req, res, next) => {
-    try {
-      const categories = await Category.findAll({ raw: true, nest: true, order: [['updatedAt', 'DESC']] })
-      if (req.params.id) {
-        const selectedCategory = categories.find(category => category.id.toString() === req.params.id)
-        return res.render('admin/categories', { categories, category: selectedCategory })
-      }
-      res.render('admin/categories', { categories })
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+  getCategories: (req, res, next) => {
+    categoryService.getCategories(req, res, next, (data) => {
+      res.render('admin/categories', data)
+    })
   },
   //add new category to the list
   postCategory: async (req, res, next) => {
