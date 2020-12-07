@@ -16,6 +16,17 @@ const adminController = {
     adminService.deleteRestaurant(req, res, next, (data) => {
       res.json(data)
     })
+  },
+  postRestaurant: (req, res, next) => {
+    adminService.postRestaurant(req, res, next, (data) => {
+      if (data.status === 'error') {
+        return res.json({ status: data.status, message: data.message })
+      }
+
+      if (data.status === 'success') {
+        return res.json(data)
+      }
+    })
   }
 }
 

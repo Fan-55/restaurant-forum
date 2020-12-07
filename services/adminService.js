@@ -1,5 +1,6 @@
-const db = require('../models/index')
 const { Restaurant, User, Category } = require('../models/index')
+const imgur = require('imgur-node-api')
+const IMGUR_CLIENT_ID = process.env.IMGUR_CLIENT_ID
 
 const adminService = {
   getRestaurants: async (req, res, next, callback) => {
@@ -24,9 +25,51 @@ const adminService = {
     try {
       const restaurant = await Restaurant.findByPk(req.params.id)
       await restaurant.destroy()
-      // req.flash('success_messages', `餐廳: ${restaurant.dataValues.name}已刪除`)
-      // res.redirect('/admin/restaurants')
       callback({ status: 'success', message: `餐廳: ${restaurant.dataValues.name}已刪除` })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  postRestaurant: async (req, res, next, callback) => {
+    try {
+      //check required attributes
+      const restaurant = req.body
+      const errors = {}
+      if (!restaurant.name) {
+        errors.name = '餐廳名稱不能空白'
+      }
+      if (!restaurant.CategoryId) {
+        errors.CategoryId = '餐廳種類不能空白'
+      }
+      if (Object.keys(errors).length) {
+        const categories = await Category.findAll({ raw: true, nest: true })
+        restaurant.CategoryId = Number(restaurant.CategoryId)
+        return callback({ status: 'error', message: errors, categories, restaurant })
+      }
+
+      //if restaurant image file exists, create new restaurant with image; else create restaurant without image
+      const file = req.file
+      if (file) {
+        imgur.setClientID(IMGUR_CLIENT_ID);
+        const uploadToImgur = new Promise((resolve, reject) => {
+          imgur.upload(file.path, (err, image) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(image)
+            }
+          })
+        })
+        const image = await uploadToImgur
+        restaurant.image = image ? image.data.link : null
+        const newRestaurant = await Restaurant.create(restaurant)
+        return callback({ status: 'success', message: `成功建立餐廳: ${newRestaurant.dataValues.name}` })
+      } else {
+        restaurant.image = null
+        const newRestaurant = await Restaurant.create(restaurant)
+        return callback({ status: 'success', message: `成功建立餐廳: ${newRestaurant.dataValues.name}` })
+      }
     } catch (err) {
       console.log(err)
       next(err)

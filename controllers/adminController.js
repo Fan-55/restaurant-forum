@@ -1,4 +1,3 @@
-const db = require('../models/index')
 const { Restaurant, User, Category } = require('../models/index')
 const adminService = require('../services/adminService')
 
@@ -20,51 +19,22 @@ const adminController = {
       next(err)
     }
   },
-  postRestaurant: async (req, res, next) => {
-    try {
-      //check required attributes
-      const restaurant = req.body
-      const errors = {}
-      if (!restaurant.name.trim()) {
-        errors.name = '餐廳名稱不能空白'
-      }
-      if (!restaurant.CategoryId) {
-        errors.CategoryId = '餐廳種類不能空白'
-      }
-      if (Object.keys(errors).length) {
-        const categories = await Category.findAll({ raw: true, nest: true })
-        restaurant.CategoryId = Number(restaurant.CategoryId)
-        return res.render('admin/create', { errors, categories, restaurant })
+  postRestaurant: (req, res, next) => {
+    adminService.postRestaurant(req, res, next, (data) => {
+      if (data.status === 'error') {
+        return res.render('admin/create', {
+          errors: data.message,
+          categories: data.categories,
+          restaurant: data.restaurant
+        })
       }
 
-      //if restaurant image file exists, create new restaurant with image; else create restaurant without image
-      const file = req.file
-      if (file) {
-        imgur.setClientID(IMGUR_CLIENT_ID);
-        const uploadToImgur = new Promise((resolve, reject) => {
-          imgur.upload(file.path, (err, image) => {
-            if (err) {
-              reject(err)
-            } else {
-              resolve(image)
-            }
-          })
-        })
-        const image = await uploadToImgur
-        restaurant.image = image ? image.data.link : null
-        const newRestaurant = await Restaurant.create(restaurant)
-        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.dataValues.name}`)
-        return res.redirect('/admin/restaurants')
-      } else {
-        restaurant.image = null
-        const newRestaurant = await Restaurant.create(restaurant)
-        req.flash('success_messages', `成功建立餐廳: ${newRestaurant.dataValues.name}`)
+      if (data.status === 'success') {
+        req.flash('success_messages', data.message)
         return res.redirect('/admin/restaurants')
       }
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+    })
+
   },
   getRestaurant: (req, res, next) => {
     adminService.getRestaurant(req, res, next, (data) => {
@@ -131,6 +101,7 @@ const adminController = {
   deleteRestaurant: async (req, res, next) => {
     adminService.deleteRestaurant(req, res, next, (data) => {
       if (data.status === 'success') {
+        req.flash('success_messages', data.message)
         res.redirect('/admin/restaurants')
       }
     })
