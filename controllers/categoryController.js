@@ -10,21 +10,18 @@ module.exports = {
     })
   },
   //add new category to the list
-  postCategory: async (req, res, next) => {
-    try {
-      const { name } = req.body
-      if (!name.trim()) {
-        req.flash('error_messages', '沒有輸入餐廳種類')
-        res.redirect('/admin/categories')
-      } else {
-        const newCategory = await Category.create({ name })
-        req.flash('success_messages', `成功新增餐廳種類:${newCategory.dataValues.name}`)
-        res.redirect('/admin/categories')
+  postCategory: (req, res, next) => {
+    categoryService.postCategory(req, res, next, (data) => {
+      if (data.status === 'error') {
+        req.flash('error_messages', data.message)
+        return res.redirect('/admin/categories')
       }
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+
+      if (data.status === 'success') {
+        req.flash('success_messages', data.message)
+        return res.redirect('/admin/categories')
+      }
+    })
   },
   //modify existed category's name
   putCategory: async (req, res, next) => {
