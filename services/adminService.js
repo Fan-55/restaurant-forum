@@ -74,6 +74,50 @@ const adminService = {
       console.log(err)
       next(err)
     }
+  },
+  putRestaurant: async (req, res, next, callback) => {
+    try {
+      const restaurant = req.body
+      const errors = {}
+      if (!restaurant.name) {
+        errors.name = '餐廳名稱不能空白'
+      }
+      if (!restaurant.CategoryId) {
+        errors.CategoryId = '餐廳種類不能空白'
+      }
+      if (Object.keys(errors).length) {
+        const categories = await Category.findAll({ raw: true, nest: true })
+        restaurant.CategoryId = Number(restaurant.CategoryId)
+        return callback({ status: 'error', message: errors, categories, restaurant })
+      }
+
+      const file = req.file
+      if (file) {
+        imgur.setClientID(IMGUR_CLIENT_ID);
+        const uploadToImgur = new Promise((resolve, reject) => {
+          imgur.upload(file.path, (err, image) => {
+            if (err) {
+              reject(err)
+            } else {
+              resolve(image)
+            }
+          })
+        })
+        const image = await uploadToImgur
+        restaurant.image = image ? image.data.link : null
+        const targetRestaurant = await Restaurant.findByPk(req.params.id)
+        await targetRestaurant.update(restaurant)
+        return callback({ status: 'success', message: `成功編輯餐廳: ${targetRestaurant.dataValues.name}` })
+      }
+      else {
+        const targetRestaurant = await Restaurant.findByPk(req.params.id)
+        await targetRestaurant.update(restaurant)
+        return callback({ status: 'success', message: `成功編輯餐廳: ${targetRestaurant.dataValues.name}` })
+      }
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 

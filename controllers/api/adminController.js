@@ -27,6 +27,17 @@ const adminController = {
         return res.json(data)
       }
     })
+  },
+  putRestaurant: (req, res, next) => {
+    adminService.putRestaurant(req, res, next, (data) => {
+      if (data.status === 'error') {
+        return res.json({ status: data.status, message: data.message })
+      }
+
+      if (data.status === 'success') {
+        return res.json({ status: data.status, message: data.message })
+      }
+    })
   }
 }
 

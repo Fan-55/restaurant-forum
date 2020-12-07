@@ -51,51 +51,21 @@ const adminController = {
       next(err)
     }
   },
-  putRestaurant: async (req, res, next) => {
-    try {
-      const restaurant = req.body
-      const errors = {}
-      if (!restaurant.name.trim()) {
-        errors.name = '餐廳名稱不能空白'
-      }
-      if (!restaurant.CategoryId) {
-        errors.CategoryId = '餐廳種類不能空白'
-      }
-      if (Object.keys(errors).length) {
-        const categories = await Category.findAll({ raw: true, nest: true })
-        restaurant.CategoryId = Number(restaurant.CategoryId)
-        return res.render('admin/create', { errors, categories, restaurant })
+  putRestaurant: (req, res, next) => {
+    adminService.putRestaurant(req, res, next, (data) => {
+      if (data.status === 'error') {
+        return res.render('admin/create', {
+          errors: data.message,
+          categories: data.categories,
+          restaurant: data.restaurant
+        })
       }
 
-      const file = req.file
-      if (file) {
-        imgur.setClientID(IMGUR_CLIENT_ID);
-        const uploadToImgur = new Promise((resolve, reject) => {
-          imgur.upload(file.path, (err, image) => {
-            if (err) {
-              reject(err)
-            } else {
-              resolve(image)
-            }
-          })
-        })
-        const image = await uploadToImgur
-        restaurant.image = image ? image.data.link : null
-        const targetRestaurant = await Restaurant.findByPk(req.params.id)
-        await targetRestaurant.update(restaurant)
-        req.flash('success_messages', `成功編輯餐廳: ${targetRestaurant.dataValues.name}`)
-        res.redirect(`/admin/restaurants`)
+      if (data.status === 'success') {
+        req.flash('success_messages', data.message)
+        return res.redirect('/admin/restaurants')
       }
-      else {
-        const targetRestaurant = await Restaurant.findByPk(req.params.id)
-        await targetRestaurant.update(restaurant)
-        req.flash('success_messages', `成功編輯餐廳: ${targetRestaurant.dataValues.name}`)
-        res.redirect(`/admin/restaurants`)
-      }
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+    })
   },
 
   deleteRestaurant: async (req, res, next) => {
