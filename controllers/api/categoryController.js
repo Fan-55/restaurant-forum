@@ -19,5 +19,12 @@ module.exports = {
       return res.json(data)
     })
   },
+  //delete existed category
+  deleteCategory: async (req, res, next) => {
+    categoryService.deleteCategory(req, res, next, (data) => {
+      if (data.status === 'success') {
+        return res.json(data)
+      }
+    })
   }
 }

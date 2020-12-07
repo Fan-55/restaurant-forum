@@ -36,15 +36,12 @@ module.exports = {
     })
   },
   //delete existed category
-  deleteCategory: async (req, res, next) => {
-    try {
-      const targetCategory = await Category.findByPk(req.params.id)
-      await targetCategory.destroy()
-      req.flash('success_messages', `成功刪除餐廳種類:${targetCategory.dataValues.name}`)
-      res.redirect('/admin/categories')
-    } catch (err) {
-      console.log(err)
-      next(err)
-    }
+  deleteCategory: (req, res, next) => {
+    categoryService.deleteCategory(req, res, next, (data) => {
+      if (data.status === 'success') {
+        req.flash('success_messages', data.message)
+        return res.redirect('/admin/categories')
+      }
+    })
   }
 }

@@ -42,5 +42,15 @@ module.exports = {
       next(err)
     }
   },
+  //delete existed category
+  deleteCategory: async (req, res, next, callback) => {
+    try {
+      const targetCategory = await Category.findByPk(req.params.id)
+      await targetCategory.destroy()
+      return callback({ status: 'success', message: `成功刪除餐廳種類:${targetCategory.dataValues.name}` })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
