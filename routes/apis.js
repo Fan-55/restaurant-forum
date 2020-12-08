@@ -5,18 +5,6 @@ const adminController = require('../controllers/api/adminController.js')
 const categoryController = require('../controllers/api/categoryController.js')
 const userController = require('../controllers/api/userController.js')
 
-// const passport = require('../config/passport')
-// const authenticated = passport.authenticate('jwt', { session: false })
-
-// const authenticatedAdmin = (req, res, next) => {
-//   if (req.user) {
-//     if (req.user.isAdmin) { return next() }
-//     return res.json({ status: 'error', message: 'permission denied' })
-//   } else {
-//     return res.json({ status: 'error', message: 'permission denied' })
-//   }
-// }
-
 const { authenticated, authenticatedAdmin } = require('../middleware/check-auth-jwt')
 
 const multer = require('multer')
@@ -33,6 +21,7 @@ router.post('/admin/categories', categoryController.postCategory)
 router.put('/admin/categories/:id', categoryController.putCategory)
 router.delete('/admin/categories/:id', categoryController.deleteCategory)
 
-router.post('/signin', userController.signIn)
+router.post('/users/signin', userController.signIn)
+router.post('/users/signup', userController.signup)
 
 module.exports = router

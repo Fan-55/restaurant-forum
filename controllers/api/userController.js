@@ -1,11 +1,6 @@
 const bcrypt = require('bcryptjs')
 const { User } = require('../../models/index')
-
-//JWT
 const jwt = require('jsonwebtoken')
-const passportJWT = require('passport-jwt')
-const ExtractJwt = passportJWT.ExtractJwt
-const JwtStrategy = passportJWT.Strategy
 
 const userController = {
   signIn: async (req, res, next) => {
@@ -40,6 +35,45 @@ const userController = {
         }
       })
 
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
+  },
+  signup: async (req, res, next) => {
+    try {
+      const { name, email, password, passwordCheck } = req.body
+      const errors = {}
+      //check required attributes
+      if (!name) {
+        errors.name = '名稱不可空白'
+      }
+      if (!email) {
+        errors.email = 'Email不可空白'
+      }
+      if (!password) {
+        errors.password = '密碼不可空白'
+      }
+      if (passwordCheck !== password) {
+        errors.passwordCheck = '密碼和確認密碼不相符'
+      }
+      //check duplicate email
+      const where = {}
+      if (email) {
+        where.email = email
+      }
+      const user = await User.findOne({ where, raw: true, nest: true })
+      if (user) {
+        errors.userExist = '此Email已註冊'
+      }
+      //if one of errors exists, go back to signup page
+      if (Object.keys(errors).length) {
+        return res.json({ status: 'error', message: errors })
+      }
+      const hashedPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10))
+      req.body.password = hashedPassword
+      await User.create(req.body)
+      res.json({ status: 'success', message: '成功註冊帳號' })
     } catch (err) {
       console.log(err)
       next(err)
