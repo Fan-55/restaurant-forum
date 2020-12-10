@@ -1,6 +1,6 @@
-const { Restaurant, Category, Comment, User, Favorite } = require('../models')
+const { Restaurant, Category, Comment, User, Favorite, sequelize } = require('../models')
 const helpers = require('../_helpers')
-const { Sequelize } = require('sequelize')
+const { QueryTypes } = require('sequelize')
 
 const restController = {
   getRestaurants: async (req, res, next) => {
@@ -83,25 +83,31 @@ const restController = {
     }
   },
   getTopRestaurant: async (req, res, next) => {
-    let restaurants = await Restaurant.findAll({
-      attributes: {
-        include: [[Sequelize.fn('COUNT', Sequelize.col('favorites.RestaurantId')), 'favoriteCount']]
-      },
-      include: [{
-        model: Favorite, attributes: []
-      }],
-      group: ['restaurant.id']
-    })
-    restaurants = restaurants.map(r => {
-      return {
-        ...r.dataValues,
-        description: r.description.substring(0, 50),
-        isFavorite: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id)
-      }
-    })
-    restaurants = restaurants.sort((a, b) => b.favoriteCount - a.favoriteCount) //desc by favoriteCount
-    restaurants = restaurants.slice(0, 10) //get top 10 restaurants
-    res.render('topRestaurant', { restaurants })
+    try {
+      let restaurants = await sequelize.query(
+        `SELECT id, name, description, image, CategoryId, counts.favoriteCount
+        FROM Restaurants
+        INNER JOIN (SELECT RestaurantId, COUNT(RestaurantId) AS favoriteCount FROM Favorites GROUP BY RestaurantId) AS counts
+        ON counts.RestaurantId = Restaurants.id
+        ORDER BY favoriteCount DESC
+        LIMIT 10`,
+        { type: sequelize.QueryTypes.SELECT }
+      )
+
+      console.log(restaurants)
+
+      restaurants = restaurants.map(r => {
+        return {
+          ...r,
+          description: r.description.substring(0, 50),
+          isFavorite: req.user.FavoritedRestaurants.map(d => d.id).includes(r.id)
+        }
+      })
+      res.render('topRestaurant', { restaurants })
+    } catch (err) {
+      console.log(err)
+      next(err)
+    }
   }
 }
 module.exports = restController
